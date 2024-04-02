@@ -6,6 +6,7 @@ import com.google.api.services.youtube.YouTube;
 import com.google.api.services.youtube.model.Channel;
 import com.google.api.services.youtube.model.Video;
 import com.google.common.base.Preconditions;
+import me.knighthat.api.utils.SystemInfo;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -40,7 +41,7 @@ public class YoutubeAPI {
         }
     }
 
-    public static List<Video> trending( long size ) {
+    public static List<Video> getPopular( long size, String region ) {
         Preconditions.checkNotNull( YT_SERVICE, "YoutubeAPI has NOT been initialized yet!" );
 
         try {
@@ -48,6 +49,7 @@ public class YoutubeAPI {
                              .list( "contentDetails,snippet,statistics,id" )
                              .setKey( API_KEY )
                              .setChart( "mostPopular" )
+                             .setRegionCode( region == null ? SystemInfo.countryCode() : region )
                              .setMaxResults( size )
                              .execute()
                              .getItems();

@@ -61,11 +61,12 @@ public class MainPageController {
         return duration;
     }
 
-    @GetMapping( "/trending" )
-    public ResponseEntity<List<PreviewCard>> trending( @RequestParam( required = false ) int max ) {
+    @GetMapping( "/popular" )
+    @CrossOrigin
+    public ResponseEntity<List<PreviewCard>> popular( @RequestParam( required = false ) int max, @RequestParam( required = false ) String region ) {
         List<PreviewCard> cards = new ArrayList<>( max );
 
-        for (Video video : YoutubeAPI.trending( max )) {
+        for (Video video : YoutubeAPI.getPopular( max, region )) {
             VideoSnippet vSnippet = video.getSnippet();
             Channel channel = YoutubeAPI.channel( vSnippet.getChannelId(), "snippet" );
             ChannelSnippet cSnippet = channel.getSnippet();
