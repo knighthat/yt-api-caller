@@ -1,4 +1,4 @@
-package me.knighthat.api.v1.trending.services;
+package me.knighthat.api.v1.instances;
 
 import com.google.api.client.util.DateTime;
 

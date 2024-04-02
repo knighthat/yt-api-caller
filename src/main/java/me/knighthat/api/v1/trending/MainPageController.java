@@ -4,7 +4,7 @@ import com.google.api.services.youtube.model.Channel;
 import com.google.api.services.youtube.model.ChannelSnippet;
 import com.google.api.services.youtube.model.Video;
 import com.google.api.services.youtube.model.VideoSnippet;
-import me.knighthat.api.v1.trending.services.PreviewCard;
+import me.knighthat.api.v1.instances.PreviewCard;
 import me.knighthat.api.youtube.YoutubeAPI;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
