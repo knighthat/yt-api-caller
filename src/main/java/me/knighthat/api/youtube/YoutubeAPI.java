@@ -15,9 +15,8 @@ import java.util.StringJoiner;
 
 public class YoutubeAPI {
 
-    private static final String API_KEY = System.getenv( "YOUTUBE_API_KEY" );
-
-    private static YouTube YT_SERVICE;
+    public static final String  API_KEY = System.getenv( "YOUTUBE_API_KEY" );
+    private static      YouTube YT_SERVICE;
 
     private static String list( String... parts ) {
         assert parts.length > 0;
@@ -39,6 +38,11 @@ public class YoutubeAPI {
         } catch ( GeneralSecurityException | IOException e ) {
             throw new RuntimeException( e );
         }
+    }
+
+    public static YouTube getService() {
+        Preconditions.checkNotNull( YT_SERVICE, "YoutubeAPI has NOT been initialized yet!" );
+        return YT_SERVICE;
     }
 
     public static List<Video> getPopular( long size, String region ) {
