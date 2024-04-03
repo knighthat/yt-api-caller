@@ -34,10 +34,10 @@ public class ChannelPreviewCard extends PreviewCard {
     }
 
     @Override
-    public String getThumbNail() {
+    public String getThumbnail() {
         int start = "https://yt3.ggpht.com/ytc/".length();
         int end = "=s88-c-k-c0x00ffffff-no-rj".length();
-        int length = super.getThumbNail().length() - end;
-        return super.getThumbNail().substring( start, length );
+        int length = super.getThumbnail().length() - end;
+        return super.getThumbnail().substring( start, length );
     }
 }

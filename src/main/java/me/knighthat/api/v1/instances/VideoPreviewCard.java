@@ -35,7 +35,7 @@ public final class VideoPreviewCard extends PreviewCard {
 
     @Override
     @JsonIgnore
-    public String getThumbNail() { return super.getThumbNail(); }
+    public String getThumbnail() { return super.getThumbnail(); }
 
     record VideoDuration( int hours, int minutes, int seconds ) {
 
