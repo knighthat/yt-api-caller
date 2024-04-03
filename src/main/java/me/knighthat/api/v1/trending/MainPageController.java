@@ -17,50 +17,6 @@ import java.util.List;
 @CrossOrigin
 public class MainPageController {
 
-    private int findTime( String str ) {
-        StringBuilder result = new StringBuilder();
-        for (int i = str.length() - 1 ; i >= 0 ; i--) {
-            if ( Character.isDigit( str.charAt( i ) ) )
-                result.append( str.charAt( i ) );
-            else
-                break;
-        }
-
-        try {
-            return Integer.parseInt( result.toString() );
-        } catch ( NumberFormatException ignored ) {
-            return -1;
-        }
-    }
-
-    private int convertDuration( String str ) {
-        if ( !str.startsWith( "PT" ) )
-            return -1;
-
-        int duration = 0;
-        int lastStop = 0;
-        for (int i = 0 ; i < str.length() ; i++) {
-            String strToFind = str.substring( lastStop, i );
-
-            switch (str.charAt( i )) {
-                case 'H' -> {
-                    duration += findTime( strToFind ) * 60 * 60;
-                    lastStop = i;
-                }
-                case 'M' -> {
-                    duration += findTime( strToFind ) * 60;
-                    lastStop = i;
-                }
-                case 'S' -> {
-                    duration += findTime( strToFind );
-                    lastStop = i;
-                }
-            }
-        }
-
-        return duration;
-    }
-
     @GetMapping( "/popular" )
     @CrossOrigin
     public ResponseEntity<List<PreviewCard>> popular( @RequestParam( required = false ) int max, @RequestParam( required = false ) String region ) {
