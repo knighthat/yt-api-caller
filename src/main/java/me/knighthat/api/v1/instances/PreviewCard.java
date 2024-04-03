@@ -9,12 +9,12 @@ public abstract class PreviewCard {
     private final String   id;
     private final CardType type;
     private final String   thumbNail;
-    private final DateTime uploadDate;
+    private final DateTime since;
 
-    public PreviewCard( String id, CardType type, String thumbNail, DateTime uploadDate ) {
+    public PreviewCard( String id, CardType type, String thumbNail, DateTime since ) {
         this.id = id;
         this.type = type;
         this.thumbNail = thumbNail;
-        this.uploadDate = uploadDate;
+        this.since = since;
     }
 }
