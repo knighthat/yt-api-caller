@@ -35,7 +35,7 @@ public class YoutubeAPI {
                     GoogleNetHttpTransport.newTrustedTransport(),
                     GsonFactory.getDefaultInstance(),
                     null
-            ).setApplicationName( "KnightHat" ).build();
+            ).setApplicationName( "YTF" ).build();
         } catch ( GeneralSecurityException | IOException e ) {
             throw new RuntimeException( e );
         }
