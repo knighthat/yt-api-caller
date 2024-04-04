@@ -22,7 +22,6 @@ import java.util.concurrent.CopyOnWriteArraySet;
 
 @RestController
 @RequestMapping( "/v1" )
-@CrossOrigin
 public class SearchController {
 
     private List<SearchResult> findByKeyword( String keyword, long size, String region ) {
@@ -88,6 +87,7 @@ public class SearchController {
     }
 
     @GetMapping( "/search" )
+    @CrossOrigin
     public ResponseEntity<Set<PreviewCard>> search(
             @RequestParam String key,
             @RequestParam( required = false, defaultValue = "1" ) int max,
