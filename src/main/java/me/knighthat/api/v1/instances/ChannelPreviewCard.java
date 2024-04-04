@@ -30,7 +30,7 @@ public class ChannelPreviewCard extends PreviewCard {
     public ChannelPreviewCard( Channel channel ) {
         this(
                 channel.getId(),
-                channel.getSnippet().getThumbnails().getDefault().getUrl(),
+                channel.getSnippet().getThumbnails().getMedium().getUrl(),
                 channel.getSnippet().getPublishedAt(),
                 channel.getSnippet().getTitle(),
                 channel.getSnippet().getCustomUrl()
