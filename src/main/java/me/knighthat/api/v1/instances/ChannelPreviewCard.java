@@ -10,18 +10,21 @@ import java.util.Date;
 @Getter
 public class ChannelPreviewCard extends PreviewCard {
 
-    public static ChannelPreviewCard DUMMY = new ChannelPreviewCard( "0", "", new DateTime( new Date() ), "" );
+    public static ChannelPreviewCard DUMMY = new ChannelPreviewCard( "0", "", new DateTime( new Date() ), "", "" );
 
     private final String title;
+    private final String url;
 
     public ChannelPreviewCard(
             String id,
             String thumbNail,
             DateTime uploadDate,
-            String title
+            String title,
+            String url
     ) {
         super( id, CardType.CHANNEL, thumbNail, uploadDate );
         this.title = title;
+        this.url = url;
     }
 
     public ChannelPreviewCard( Channel channel ) {
@@ -29,7 +32,8 @@ public class ChannelPreviewCard extends PreviewCard {
                 channel.getId(),
                 channel.getSnippet().getThumbnails().getDefault().getUrl(),
                 channel.getSnippet().getPublishedAt(),
-                channel.getSnippet().getTitle()
+                channel.getSnippet().getTitle(),
+                channel.getSnippet().getCustomUrl()
         );
     }
 }
