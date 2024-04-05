@@ -5,7 +5,7 @@ import com.google.api.services.youtube.model.Channel;
 import com.google.api.services.youtube.model.CommentThread;
 import com.google.api.services.youtube.model.Video;
 import lombok.Data;
-import me.knighthat.api.youtube.YoutubeAPI;
+import me.knighthat.api.v1.YoutubeAPI;
 
 import java.io.IOException;
 import java.math.BigInteger;

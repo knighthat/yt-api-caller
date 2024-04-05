@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.api.services.youtube.model.Channel;
 import com.google.api.services.youtube.model.Video;
 import lombok.Getter;
-import me.knighthat.api.youtube.YoutubeAPI;
+import me.knighthat.api.v1.YoutubeAPI;
 
 import java.math.BigInteger;
 

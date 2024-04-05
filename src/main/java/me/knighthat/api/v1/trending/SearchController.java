@@ -5,10 +5,10 @@ import com.google.api.services.youtube.model.ResourceId;
 import com.google.api.services.youtube.model.SearchResult;
 import com.google.api.services.youtube.model.Video;
 import me.knighthat.api.utils.SystemInfo;
+import me.knighthat.api.v1.YoutubeAPI;
 import me.knighthat.api.v1.instances.ChannelPreviewCard;
 import me.knighthat.api.v1.instances.PreviewCard;
 import me.knighthat.api.v1.instances.VideoPreviewCard;
-import me.knighthat.api.youtube.YoutubeAPI;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

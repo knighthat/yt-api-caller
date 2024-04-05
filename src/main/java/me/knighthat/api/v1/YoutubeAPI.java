@@ -1,4 +1,4 @@
-package me.knighthat.api.youtube;
+package me.knighthat.api.v1;
 
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;

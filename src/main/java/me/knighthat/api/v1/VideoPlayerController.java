@@ -2,7 +2,6 @@ package me.knighthat.api.v1;
 
 import com.google.api.services.youtube.model.Video;
 import me.knighthat.api.v1.instances.VideoPlayer;
-import me.knighthat.api.youtube.YoutubeAPI;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
