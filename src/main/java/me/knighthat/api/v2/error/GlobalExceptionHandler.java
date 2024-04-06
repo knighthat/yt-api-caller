@@ -22,4 +22,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ServerErrorTemplate> handleNullPointerException( NullPointerException e ) {
         return new ServerErrorTemplate( e ).makeResponse();
     }
+
+    @ExceptionHandler( IllegalStateException.class )
+    public ResponseEntity<ServerErrorTemplate> handleIllegalStateException( IllegalStateException e ) {
+        return new ServerErrorTemplate( e ).makeResponse();
+    }
 }
