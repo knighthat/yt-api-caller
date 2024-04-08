@@ -21,9 +21,11 @@ import com.google.api.services.youtube.model.SearchResultSnippet;
 import me.knighthat.api.utils.Concurrency;
 import me.knighthat.api.utils.SystemInfo;
 import me.knighthat.api.v2.YoutubeAPI;
+import me.knighthat.api.v2.error.YoutubeAPIErrorTemplate;
 import me.knighthat.api.v2.instance.InfoContainer;
 import me.knighthat.api.v2.instance.preview.ChannelPreviewCard;
 import me.knighthat.api.v2.instance.preview.VideoPreviewCard;
+import me.knighthat.api.v2.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.http.ResponseEntity;
@@ -117,7 +119,14 @@ public class SearchController {
             return ResponseEntity.ok( containers );
 
         } catch ( IOException e ) {
-            throw new RuntimeException( e );
+
+            YoutubeAPIErrorTemplate errorTemplate = new YoutubeAPIErrorTemplate( e );
+
+            Logger.severe( "YouTubeAPI returns error" );
+            Logger.severe( "Reason: " + errorTemplate.getReason() );
+
+            return errorTemplate.makeResponse();
+            
         }
     }
 }
