@@ -16,9 +16,11 @@
 
 package me.knighthat.api.v2.controller;
 
+import com.google.api.services.youtube.model.Channel;
 import com.google.api.services.youtube.model.Video;
 import me.knighthat.api.v2.YoutubeAPI;
 import me.knighthat.api.v2.error.YoutubeAPIErrorTemplate;
+import me.knighthat.api.v2.instance.detail.ChannelDetails;
 import me.knighthat.api.v2.instance.detail.VideoDetails;
 import me.knighthat.api.v2.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -38,6 +40,26 @@ public class DetailsCardController {
 
             Video video = YoutubeAPI.videos( 1, null, id ).get( 0 );
             return ResponseEntity.ok( new VideoDetails( video ) );
+
+        } catch ( IOException e ) {
+
+            YoutubeAPIErrorTemplate errorTemplate = new YoutubeAPIErrorTemplate( e );
+
+            Logger.severe( "YouTubeAPI returns error" );
+            Logger.severe( "Reason: " + errorTemplate.getReason() );
+
+            return errorTemplate.makeResponse();
+
+        }
+    }
+
+    @GetMapping( "/channel" )
+    @CrossOrigin
+    public @NotNull ResponseEntity<?> channelDetails( @RequestParam String id ) {
+        try {
+
+            Channel channel = YoutubeAPI.channels( 1, id ).get( 0 );
+            return ResponseEntity.ok( new ChannelDetails( channel ) );
 
         } catch ( IOException e ) {
 
