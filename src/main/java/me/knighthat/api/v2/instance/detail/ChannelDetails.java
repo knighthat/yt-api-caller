@@ -26,10 +26,20 @@ import java.math.BigInteger;
 @Getter
 public class ChannelDetails extends ChannelPreviewCard {
 
+    @NotNull
     private final BigInteger subscribers;
+    @NotNull
+    private final String     banner;
+    @NotNull
+    private final BigInteger views;
+    @NotNull
+    private final String     description;
 
     public ChannelDetails( @NotNull Channel channel ) {
         super( channel );
         this.subscribers = channel.getStatistics().getSubscriberCount();
+        this.banner = channel.getBrandingSettings().getImage().getBannerExternalUrl();
+        this.views = channel.getStatistics().getViewCount();
+        this.description = channel.getSnippet().getDescription();
     }
 }
