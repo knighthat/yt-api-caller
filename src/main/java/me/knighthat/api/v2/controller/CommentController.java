@@ -63,20 +63,14 @@ public class CommentController {
     ) {
         try {
 
-            Logger.info( "VideoId: " + videoId );
-
             List<Comment> comments = new CopyOnWriteArrayList<>();
             Concurrency.voidAsync(
                     this.fetchCommentThreads( max, videoId ),
                     thread -> comments.add( new Comment( videoId, thread ) )
             );
 
-            Logger.info( "Before sorting: " + comments.size() );
-
             /* Sort top-level comments based on likes in descending order */
             comments.sort( ( cmt1, cmt2 ) -> cmt2.getLikes().compareTo( cmt1.getLikes() ) );
-
-            Logger.info( "After sorting: " + comments.size() );
 
             return ResponseEntity.ok( comments );
 
