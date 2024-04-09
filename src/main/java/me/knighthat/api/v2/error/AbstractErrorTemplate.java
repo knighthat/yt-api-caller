@@ -13,13 +13,18 @@ public abstract class AbstractErrorTemplate {
     private final String reason;
     @NotNull
     private final String stackTrace;
-    
+
     AbstractErrorTemplate( @NotNull Throwable throwable ) {
         String stackTrace = ArrayUtils.toString( throwable.getStackTrace(), "\n" );
         if ( stackTrace == null )
             stackTrace = "empty!";
 
         this.reason = throwable.getMessage();
+        this.stackTrace = stackTrace;
+    }
+
+    AbstractErrorTemplate( @NotNull String reason, @NotNull String stackTrace ) {
+        this.reason = reason;
         this.stackTrace = stackTrace;
     }
 
