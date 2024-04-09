@@ -22,6 +22,7 @@ import com.google.api.services.youtube.model.VideoSnippet;
 import me.knighthat.api.utils.Concurrency;
 import me.knighthat.api.utils.SystemInfo;
 import me.knighthat.api.v2.YoutubeAPI;
+import me.knighthat.api.v2.error.BadRequestTemplate;
 import me.knighthat.api.v2.error.YoutubeAPIErrorTemplate;
 import me.knighthat.api.v2.instance.InfoContainer;
 import me.knighthat.api.v2.instance.preview.ChannelPreviewCard;
@@ -71,19 +72,53 @@ public class SearchController {
                          .getItems();
     }
 
+    private @NotNull List<SearchResult> videosOf( long max, @NotNull String channelId ) throws IOException {
+        if ( max < 0 )
+            /*
+            Set number of results return by YouTubeAPI to
+            maximum number allowed.
+            */
+            max = 500;
+        if ( max == 0 )
+            /* No need to waste quota on 0 result query */
+            return Collections.emptyList();
+
+        return YoutubeAPI.getService()
+                         .search()
+                         .list( "snippet" )
+                         .setKey( YoutubeAPI.API_KEY )
+                         .setChannelId( channelId )
+                         .setMaxResults( max )
+                         .execute()
+                         .getItems();
+    }
+
     @GetMapping( "/search" )
     @CrossOrigin
     public @NotNull ResponseEntity<?> search(
             @RequestParam( required = false, defaultValue = "50" ) int max,
             @RequestParam( required = false ) String region,
-            @RequestParam String key
+            @RequestParam( required = false ) String channelId,
+            @RequestParam( required = false ) String key
     ) {
+        if ( channelId == null && key == null )
+            return BadRequestTemplate.body( "Please provide at least 1 argument of \"key\" or \"channelId\"" );
+        if ( channelId != null && key != null )
+            return BadRequestTemplate.body( "Cannot process with both \"key\" and \"channelId\" provided!" );
+
         try {
 
             Set<InfoContainer> containers = new CopyOnWriteArraySet<>();
             Set<String> videoIds = new CopyOnWriteArraySet<>();
+
+            List<SearchResult> results = null;
+            if ( channelId != null )
+                results = this.videosOf( max, channelId );
+            if ( key != null )
+                results = this.searchByKeyword( max, region, key );
+
             Concurrency.voidAsync(
-                    this.searchByKeyword( max, region, key ),
+                    results,
                     result -> {
                         switch (result.getId().getKind()) {
                             case "youtube#channel" -> {
@@ -146,7 +181,7 @@ public class SearchController {
             Logger.severe( "Reason: " + errorTemplate.getReason() );
 
             return errorTemplate.makeResponse();
-            
+
         }
     }
 }
