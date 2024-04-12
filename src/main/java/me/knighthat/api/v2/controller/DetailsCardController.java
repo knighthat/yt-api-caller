@@ -23,28 +23,47 @@ import me.knighthat.api.v2.YoutubeAPI;
 import me.knighthat.api.v2.instance.detail.ChannelDetails;
 import me.knighthat.api.v2.instance.detail.VideoDetails;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 
 @RestController
 @RequestMapping( "/v2/details" )
 public class DetailsCardController {
 
+    @NotNull
+    private final YoutubeAPI service;
+
+    @Autowired
+    public DetailsCardController( @NotNull YoutubeAPI service ) {
+        this.service = service;
+    }
+
     @GetMapping( "/video" )
     @CrossOrigin
     @SneakyThrows( IOException.class )
     public @NotNull ResponseEntity<?> videoDetails( @RequestParam String id ) {
-        Video video = YoutubeAPI.videos( 1, null, id ).get( 0 );
-        return ResponseEntity.ok( new VideoDetails( video ) );
+        List<Video> videos = service.videos().setId( id ).setMaxResults( 1L ).execute().getItems();
+        if ( videos.isEmpty() )
+            return ResponseEntity.ok( Collections.emptyList() );
+
+        VideoDetails vDetails = new VideoDetails( videos.get( 0 ) );
+        return ResponseEntity.ok( vDetails );
     }
 
     @GetMapping( "/channel" )
     @CrossOrigin
     @SneakyThrows( IOException.class )
     public @NotNull ResponseEntity<?> channelDetails( @RequestParam String id ) {
-        Channel channel = YoutubeAPI.channels( 1, id ).get( 0 );
-        return ResponseEntity.ok( new ChannelDetails( channel ) );
+        List<Channel> channels = service.channels().setId( id ).setMaxResults( 1L ).execute().getItems();
+        if ( channels.isEmpty() )
+            return ResponseEntity.ok( Collections.emptyList() );
+
+        ChannelDetails details = new ChannelDetails( channels.get( 0 ) );
+        return ResponseEntity.ok( details );
     }
 }

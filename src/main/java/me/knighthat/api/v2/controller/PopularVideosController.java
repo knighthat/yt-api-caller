@@ -1,19 +1,17 @@
 package me.knighthat.api.v2.controller;
 
-import com.google.api.services.youtube.model.Video;
 import lombok.SneakyThrows;
 import me.knighthat.api.utils.Concurrency;
-import me.knighthat.api.utils.SystemInfo;
+import me.knighthat.api.utils.Sanitizer;
 import me.knighthat.api.v2.YoutubeAPI;
 import me.knighthat.api.v2.instance.preview.VideoPreviewCard;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -21,28 +19,12 @@ import java.util.concurrent.CopyOnWriteArraySet;
 @RequestMapping( "/v2" )
 public class PopularVideosController {
 
-    private @NotNull List<Video> popularVideos( long max, @Nullable String region ) throws IOException, IllegalArgumentException {
-        if ( max < 0 )
-            /* Set number of results return to maximum allowed */
-            max = 50;
-        if ( max == 0 )
-            /* No need to waste quota on 0 result query */
-            return Collections.emptyList();
+    @NotNull
+    private final YoutubeAPI service;
 
-        if ( region == null )
-            region = SystemInfo.countryCode();
-        /* Invalid country code */
-        if ( region.length() != 2 )
-            throw new IllegalArgumentException( "\"region\" can only be a 2 characters string!" );
-
-        return YoutubeAPI.getService().videos()
-                         .list( "contentDetails,id,snippet,statistics,status,topicDetails" )
-                         .setKey( YoutubeAPI.API_KEY )
-                         .setChart( "mostPopular" )
-                         .setMaxResults( max )
-                         .setRegionCode( region )
-                         .execute()
-                         .getItems();
+    @Autowired
+    public PopularVideosController( @NotNull YoutubeAPI service ) {
+        this.service = service;
     }
 
     @GetMapping( "/popular" )
@@ -52,10 +34,24 @@ public class PopularVideosController {
             @RequestParam( required = false, defaultValue = "50" ) int max,
             @RequestParam( required = false ) String region
     ) {
-        List<Video> videos = this.popularVideos( max, region );
+        if ( max < 0 )
+            throw new IllegalArgumentException( "\"max\" must be a positive number!" );
+        if ( max == 0 )
+            return ResponseEntity.ok( Collections.emptyList() );
+
+        region = Sanitizer.countryCode( region );
 
         Set<VideoPreviewCard> cards = new CopyOnWriteArraySet<>();
-        Concurrency.voidAsync( videos, video -> cards.add( new VideoPreviewCard( video ) ) );
+
+        Concurrency.voidAsync(
+                service.videos()
+                       .setChart( "mostPopular" )
+                       .setMaxResults( (long) max )
+                       .setRegionCode( region )
+                       .execute()
+                       .getItems(),
+                video -> cards.add( new VideoPreviewCard( video ) )
+        );
 
         return ResponseEntity.ok( cards );
     }

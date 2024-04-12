@@ -16,12 +16,12 @@
 
 package me.knighthat.api.v2.controller;
 
-import com.google.api.services.youtube.model.CommentThread;
 import lombok.SneakyThrows;
 import me.knighthat.api.utils.Concurrency;
 import me.knighthat.api.v2.YoutubeAPI;
 import me.knighthat.api.v2.instance.Comment;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,24 +34,12 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @RequestMapping( "/v2" )
 public class CommentController {
 
-    private @NotNull List<CommentThread> fetchCommentThreads( long max, @NotNull String videoId ) throws IOException {
-        if ( max < 0 )
-            /* Set number of results return to maximum allowed */
-            max = 100;
-        if ( max == 0 )
-            /* No need to waste quota on 0 result query */
-            return Collections.emptyList();
+    @NotNull
+    private final YoutubeAPI service;
 
-        return YoutubeAPI.getService()
-                         .commentThreads()
-                         .list( "id,snippet,replies" )
-                         .setKey( YoutubeAPI.API_KEY )
-                         .setVideoId( videoId )
-                         .setModerationStatus( "published" )
-                         .setOrder( "relevance" )
-                         .setMaxResults( max )
-                         .execute()
-                         .getItems();
+    @Autowired
+    public CommentController( @NotNull YoutubeAPI service ) {
+        this.service = service;
     }
 
     @GetMapping( "/comments" )
@@ -61,9 +49,19 @@ public class CommentController {
             @RequestParam( required = false, defaultValue = "100" ) int max,
             @RequestParam String videoId
     ) {
+        if ( max < 0 )
+            throw new IllegalArgumentException( "\"max\" must be a positive number!" );
+        if ( max == 0 )
+            return ResponseEntity.ok( Collections.emptyList() );
+
         List<Comment> comments = new CopyOnWriteArrayList<>();
         Concurrency.voidAsync(
-                this.fetchCommentThreads( max, videoId ),
+                service.comments()
+                       .setVideoId( videoId )
+                       .setModerationStatus( "relevance" )
+                       .setMaxResults( (long) max )
+                       .execute()
+                       .getItems(),
                 thread -> comments.add( new Comment( videoId, thread ) )
         );
 

@@ -21,14 +21,14 @@ import com.google.api.services.youtube.model.SearchResultSnippet;
 import com.google.api.services.youtube.model.VideoSnippet;
 import lombok.SneakyThrows;
 import me.knighthat.api.utils.Concurrency;
-import me.knighthat.api.utils.SystemInfo;
+import me.knighthat.api.utils.Sanitizer;
 import me.knighthat.api.v2.YoutubeAPI;
 import me.knighthat.api.v2.error.RawErrorTemplate;
 import me.knighthat.api.v2.instance.InfoContainer;
 import me.knighthat.api.v2.instance.preview.ChannelPreviewCard;
 import me.knighthat.api.v2.instance.preview.VideoPreviewCard;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -44,60 +44,19 @@ import java.util.concurrent.CopyOnWriteArraySet;
 @RequestMapping( "/v2" )
 public class SearchController {
 
-    private @NotNull List<SearchResult> searchByKeyword( long max, @Nullable String region, @NotNull String keyword ) throws IOException {
-        if ( max < 0 )
-            /*
-            Set number of results return by YouTubeAPI to 'ids' size
-            if provided value is a sub-zero number.
-            */
-            max = 50;
-        if ( max == 0 )
-            /* No need to waste quota on 0 result query */
-            return Collections.emptyList();
+    @NotNull
+    private final YoutubeAPI service;
 
-        if ( region == null )
-            region = SystemInfo.countryCode();
-        /* Invalid country code */
-        if ( region.length() != 2 )
-            throw new IllegalArgumentException( "\"region\" can only be a 2 characters string!" );
-
-        return YoutubeAPI.getService()
-                         .search()
-                         .list( "snippet" )
-                         .setKey( YoutubeAPI.API_KEY )
-                         .setQ( keyword )
-                         .setRegionCode( region )
-                         .setMaxResults( max )
-                         .execute()
-                         .getItems();
-    }
-
-    private @NotNull List<SearchResult> videosOf( long max, @NotNull String channelId ) throws IOException {
-        if ( max < 0 )
-            /*
-            Set number of results return by YouTubeAPI to
-            maximum number allowed.
-            */
-            max = 500;
-        if ( max == 0 )
-            /* No need to waste quota on 0 result query */
-            return Collections.emptyList();
-
-        return YoutubeAPI.getService()
-                         .search()
-                         .list( "snippet" )
-                         .setKey( YoutubeAPI.API_KEY )
-                         .setChannelId( channelId )
-                         .setMaxResults( max )
-                         .execute()
-                         .getItems();
+    @Autowired
+    public SearchController( @NotNull YoutubeAPI service ) {
+        this.service = service;
     }
 
     @GetMapping( "/search" )
     @CrossOrigin
     @SneakyThrows( IOException.class )
     public @NotNull ResponseEntity<?> search(
-            @RequestParam( required = false, defaultValue = "50" ) int max,
+            @RequestParam( required = false, defaultValue = "50" ) long max,
             @RequestParam( required = false ) String region,
             @RequestParam( required = false ) String channelId,
             @RequestParam( required = false ) String key
@@ -107,14 +66,21 @@ public class SearchController {
         if ( channelId != null && key != null )
             return RawErrorTemplate.body( HttpStatus.CONFLICT, "Cannot process with both \"key\" and \"channelId\" provided!" );
 
+        if ( max < 0 )
+            throw new IllegalArgumentException( "\"max\" must be a positive number!" );
+        if ( max == 0 )
+            return ResponseEntity.ok( Collections.emptyList() );
+
         Set<InfoContainer> containers = new CopyOnWriteArraySet<>();
         Set<String> videoIds = new CopyOnWriteArraySet<>();
 
         List<SearchResult> results = null;
         if ( channelId != null )
-            results = this.videosOf( max, channelId );
-        if ( key != null )
-            results = this.searchByKeyword( max, region, key );
+            results = service.search().setChannelId( channelId ).setMaxResults( max ).execute().getItems();
+        if ( key != null ) {
+            region = Sanitizer.countryCode( region );
+            results = service.search().setQ( key ).setRegionCode( region ).setMaxResults( max ).execute().getItems();
+        }
 
         Concurrency.voidAsync(
                 results,

@@ -17,11 +17,13 @@
 package me.knighthat.api.v2.controller;
 
 import lombok.SneakyThrows;
+import me.knighthat.api.utils.ArrayUtils;
 import me.knighthat.api.utils.Concurrency;
 import me.knighthat.api.v2.YoutubeAPI;
 import me.knighthat.api.v2.instance.preview.ChannelPreviewCard;
 import me.knighthat.api.v2.instance.preview.VideoPreviewCard;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,13 +35,26 @@ import java.util.concurrent.CopyOnWriteArraySet;
 @RequestMapping( "/v2/preview" )
 public class PreviewCardController {
 
+    @NotNull
+    private final YoutubeAPI service;
+
+    @Autowired
+    public PreviewCardController( @NotNull YoutubeAPI service ) {
+        this.service = service;
+    }
+
     @GetMapping( "/videos" )
     @CrossOrigin
     @SneakyThrows( IOException.class )
     public @NotNull ResponseEntity<?> videoCards( @RequestParam String... id ) {
+
         Set<VideoPreviewCard> cards = new CopyOnWriteArraySet<>();
+
         Concurrency.voidAsync(
-                YoutubeAPI.videos( id.length, null, id ),
+                service.videos()
+                       .setId( ArrayUtils.toString( id, "," ) )
+                       .execute()
+                       .getItems(),
                 video -> cards.add( new VideoPreviewCard( video ) )
         );
 
@@ -52,8 +67,12 @@ public class PreviewCardController {
     public @NotNull ResponseEntity<?> channelCards( @RequestParam String... id ) {
 
         Set<ChannelPreviewCard> cards = new CopyOnWriteArraySet<>();
+
         Concurrency.voidAsync(
-                YoutubeAPI.channels( id.length, id ),
+                service.channels()
+                       .setId( ArrayUtils.toString( id, "," ) )
+                       .execute()
+                       .getItems(),
                 channel -> cards.add( new ChannelPreviewCard( channel.getId(), channel.getSnippet() ) )
         );
 

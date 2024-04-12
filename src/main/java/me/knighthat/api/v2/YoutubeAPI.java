@@ -12,12 +12,14 @@ import me.knighthat.api.utils.SystemInfo;
 import me.knighthat.api.v2.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.Collections;
 import java.util.List;
 
+@Component
 public class YoutubeAPI {
 
     public static final String  API_KEY = System.getenv( "API_KEY" );
@@ -129,5 +131,35 @@ public class YoutubeAPI {
                            .setMaxResults( max )
                            .execute()
                            .getItems();
+    }
+
+    public @NotNull YouTube.Videos.List videos() throws IOException {
+        return getService().videos()
+                           .list( "contentDetails,id,snippet,statistics,status,topicDetails" )
+                           .setKey( API_KEY );
+    }
+
+    public @NotNull YouTube.Channels.List channels() throws IOException {
+        return getService().channels()
+                           .list( "brandingSettings,contentDetails,snippet,statistics,status,topicDetails" )
+                           .setKey( API_KEY );
+    }
+
+    public @NotNull YouTube.Search.List search() throws IOException {
+        return getService().search()
+                           .list( "snippet" )
+                           .setKey( API_KEY );
+    }
+
+    public @NotNull YouTube.CommentThreads.List comments() throws IOException {
+        return getService().commentThreads()
+                           .list( "id,snippet,replies" )
+                           .setKey( API_KEY );
+    }
+
+    public @NotNull YouTube.Comments.List replies() throws IOException {
+        return getService().comments()
+                           .list( "id, snippet" )
+                           .setKey( API_KEY );
     }
 }
