@@ -2,10 +2,14 @@ package me.knighthat.api.v2.error;
 
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import me.knighthat.api.v2.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
+
+import java.util.Map;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -38,5 +42,12 @@ public class GlobalExceptionHandler {
         Logger.severe( "Reason: " + template.getReason() );
 
         return template.makeResponse();
+    }
+
+    @ExceptionHandler( NoResourceFoundException.class )
+    public ResponseEntity<Map<String, String>> handleNoResourceFoundException( @NotNull NoResourceFoundException e ) {
+        Logger.warning( "NoResourceFoundException: " + e.getMessage() );
+
+        return ResponseEntity.status( 404 ).body( Map.of( "reason", e.getMessage() ) );
     }
 }
