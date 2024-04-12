@@ -23,12 +23,13 @@ import lombok.SneakyThrows;
 import me.knighthat.api.utils.Concurrency;
 import me.knighthat.api.utils.SystemInfo;
 import me.knighthat.api.v2.YoutubeAPI;
-import me.knighthat.api.v2.error.BadRequestTemplate;
+import me.knighthat.api.v2.error.RawErrorTemplate;
 import me.knighthat.api.v2.instance.InfoContainer;
 import me.knighthat.api.v2.instance.preview.ChannelPreviewCard;
 import me.knighthat.api.v2.instance.preview.VideoPreviewCard;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -102,9 +103,9 @@ public class SearchController {
             @RequestParam( required = false ) String key
     ) {
         if ( channelId == null && key == null )
-            return BadRequestTemplate.body( "Please provide at least 1 argument of \"key\" or \"channelId\"" );
+            return RawErrorTemplate.body( HttpStatus.NOT_FOUND, "Please provide at least 1 argument of \"key\" or \"channelId\"" );
         if ( channelId != null && key != null )
-            return BadRequestTemplate.body( "Cannot process with both \"key\" and \"channelId\" provided!" );
+            return RawErrorTemplate.body( HttpStatus.CONFLICT, "Cannot process with both \"key\" and \"channelId\" provided!" );
 
         Set<InfoContainer> containers = new CopyOnWriteArraySet<>();
         Set<String> videoIds = new CopyOnWriteArraySet<>();
