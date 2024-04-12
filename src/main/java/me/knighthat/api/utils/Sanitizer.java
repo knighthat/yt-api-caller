@@ -16,13 +16,13 @@
 
 package me.knighthat.api.utils;
 
-import org.jetbrains.annotations.Contract;
+import me.knighthat.api.v2.exception.ConflictRequestParamException;
+import me.knighthat.api.v2.exception.MissingRequestParamException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class Sanitizer {
 
-    @Contract( pure = true )
     public static @NotNull String countryCode( @Nullable String region ) {
         if ( region == null )
             return SystemInfo.countryCode();
@@ -31,5 +31,24 @@ public class Sanitizer {
             throw new IllegalArgumentException( "\"region\" must be a 2 characters string!" );
 
         return region;
+    }
+
+    public static void atLeastOneNotNull(
+            @Nullable Object obj1,
+            @Nullable Object obj2,
+            @NotNull String obj1Name,
+            @NotNull String obj2Name
+    ) {
+        if ( obj1 == null && obj2 == null )
+            throw new MissingRequestParamException( obj1Name, obj2Name );
+        if ( obj1 != null && obj2 != null )
+            throw new ConflictRequestParamException( obj1Name, obj2Name );
+    }
+
+    public static boolean noReturnExpected( long max ) {
+        if ( max < 0 )
+            throw new IllegalArgumentException( "\"max\" must be a positive number!" );
+
+        return max == 0;
     }
 }

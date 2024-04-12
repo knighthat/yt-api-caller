@@ -23,13 +23,11 @@ import lombok.SneakyThrows;
 import me.knighthat.api.utils.Concurrency;
 import me.knighthat.api.utils.Sanitizer;
 import me.knighthat.api.v2.YoutubeAPI;
-import me.knighthat.api.v2.error.RawErrorTemplate;
 import me.knighthat.api.v2.instance.InfoContainer;
 import me.knighthat.api.v2.instance.preview.ChannelPreviewCard;
 import me.knighthat.api.v2.instance.preview.VideoPreviewCard;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -62,14 +60,8 @@ public class SearchController {
             @RequestParam( required = false ) String channelId,
             @RequestParam( required = false ) String key
     ) {
-        if ( channelId == null && key == null )
-            return RawErrorTemplate.body( HttpStatus.NOT_FOUND, "Please provide at least 1 argument of \"key\" or \"channelId\"" );
-        if ( channelId != null && key != null )
-            return RawErrorTemplate.body( HttpStatus.CONFLICT, "Cannot process with both \"key\" and \"channelId\" provided!" );
-
-        if ( max < 0 )
-            throw new IllegalArgumentException( "\"max\" must be a positive number!" );
-        if ( max == 0 )
+        Sanitizer.atLeastOneNotNull( channelId, key, "channelId", "key" );
+        if ( Sanitizer.noReturnExpected( max ) )
             return ResponseEntity.ok( Collections.emptyList() );
 
         Set<InfoContainer> containers = new CopyOnWriteArraySet<>();

@@ -18,6 +18,7 @@ package me.knighthat.api.v2.controller;
 
 import lombok.SneakyThrows;
 import me.knighthat.api.utils.Concurrency;
+import me.knighthat.api.utils.Sanitizer;
 import me.knighthat.api.v2.YoutubeAPI;
 import me.knighthat.api.v2.instance.Comment;
 import org.jetbrains.annotations.NotNull;
@@ -49,9 +50,7 @@ public class CommentController {
             @RequestParam( required = false, defaultValue = "100" ) int max,
             @RequestParam String videoId
     ) {
-        if ( max < 0 )
-            throw new IllegalArgumentException( "\"max\" must be a positive number!" );
-        if ( max == 0 )
+        if ( Sanitizer.noReturnExpected( max ) )
             return ResponseEntity.ok( Collections.emptyList() );
 
         List<Comment> comments = new CopyOnWriteArrayList<>();
