@@ -1,6 +1,7 @@
 package me.knighthat.api.v2.error;
 
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import me.knighthat.api.utils.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
@@ -12,6 +13,7 @@ public abstract class AbstractErrorTemplate {
     @NotNull
     private final String reason;
     @NotNull
+    @JsonInclude( JsonInclude.Include.NON_EMPTY )
     private final String stackTrace;
 
     AbstractErrorTemplate( @NotNull Throwable throwable ) {
