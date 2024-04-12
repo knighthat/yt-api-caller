@@ -46,8 +46,12 @@ public class DetailsCardController {
     @GetMapping( "/video" )
     @CrossOrigin
     @SneakyThrows( IOException.class )
-    public @NotNull ResponseEntity<?> videoDetails( @RequestParam String id ) {
-        List<Video> videos = service.videos().setId( id ).setMaxResults( 1L ).execute().getItems();
+    public @NotNull ResponseEntity<?> videoDetails( @RequestParam List<String> id ) {
+        List<Video> videos = service.videos()
+                                    .setId( id )
+                                    .setMaxResults( 1L )
+                                    .execute()
+                                    .getItems();
         if ( videos.isEmpty() )
             return ResponseEntity.ok( Collections.emptyList() );
 
@@ -58,8 +62,12 @@ public class DetailsCardController {
     @GetMapping( "/channel" )
     @CrossOrigin
     @SneakyThrows( IOException.class )
-    public @NotNull ResponseEntity<?> channelDetails( @RequestParam String id ) {
-        List<Channel> channels = service.channels().setId( id ).setMaxResults( 1L ).execute().getItems();
+    public @NotNull ResponseEntity<?> channelDetails( @RequestParam List<String> id ) {
+        List<Channel> channels = service.channels()
+                                        .setId( id )
+                                        .setMaxResults( 1L )
+                                        .execute()
+                                        .getItems();
         if ( channels.isEmpty() )
             return ResponseEntity.ok( Collections.emptyList() );
 

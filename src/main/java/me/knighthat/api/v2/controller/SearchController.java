@@ -35,10 +35,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 @RestController( "search-v2" )
@@ -73,7 +73,7 @@ public class SearchController {
             return ResponseEntity.ok( Collections.emptyList() );
 
         Set<InfoContainer> containers = new CopyOnWriteArraySet<>();
-        Set<String> videoIds = new CopyOnWriteArraySet<>();
+        List<String> videoIds = new CopyOnWriteArrayList<>();
 
         List<SearchResult> results = null;
         if ( channelId != null )
@@ -115,7 +115,7 @@ public class SearchController {
         );
 
         Concurrency.voidAsync(
-                service.videos().setId( new ArrayList<>( videoIds ) ).execute().getItems(),
+                service.videos().setId( videoIds ).execute().getItems(),
                 video -> {
                     VideoPreviewCard card;
                     if ( video.getStatistics().getLikeCount() == null ) {

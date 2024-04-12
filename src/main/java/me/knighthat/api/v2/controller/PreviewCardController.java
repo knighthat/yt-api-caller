@@ -17,7 +17,6 @@
 package me.knighthat.api.v2.controller;
 
 import lombok.SneakyThrows;
-import me.knighthat.api.utils.ArrayUtils;
 import me.knighthat.api.utils.Concurrency;
 import me.knighthat.api.v2.YoutubeAPI;
 import me.knighthat.api.v2.instance.preview.ChannelPreviewCard;
@@ -28,6 +27,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -46,13 +46,13 @@ public class PreviewCardController {
     @GetMapping( "/videos" )
     @CrossOrigin
     @SneakyThrows( IOException.class )
-    public @NotNull ResponseEntity<?> videoCards( @RequestParam String... id ) {
+    public @NotNull ResponseEntity<?> videoCards( @RequestParam List<String> id ) {
 
         Set<VideoPreviewCard> cards = new CopyOnWriteArraySet<>();
 
         Concurrency.voidAsync(
                 service.videos()
-                       .setId( ArrayUtils.toString( id, "," ) )
+                       .setId( id )
                        .execute()
                        .getItems(),
                 video -> cards.add( new VideoPreviewCard( video ) )
@@ -64,13 +64,13 @@ public class PreviewCardController {
     @GetMapping( "/channels" )
     @CrossOrigin
     @SneakyThrows( IOException.class )
-    public @NotNull ResponseEntity<?> channelCards( @RequestParam String... id ) {
+    public @NotNull ResponseEntity<?> channelCards( @RequestParam List<String> id ) {
 
         Set<ChannelPreviewCard> cards = new CopyOnWriteArraySet<>();
 
         Concurrency.voidAsync(
                 service.channels()
-                       .setId( ArrayUtils.toString( id, "," ) )
+                       .setId( id )
                        .execute()
                        .getItems(),
                 channel -> cards.add( new ChannelPreviewCard( channel.getId(), channel.getSnippet() ) )
