@@ -13,8 +13,6 @@ public class KnighthatMeApplication {
     public static void main( String[] args ) {
         SpringApplication.run( KnighthatMeApplication.class, args );
 
-        me.knighthat.api.v1.YoutubeAPI.init();
-
         /* Startup stage - Load environment variables & start YouTubeAPI */
         try {
             me.knighthat.api.v2.Env.verify();
