@@ -1,12 +1,11 @@
 package me.knighthat.api.v2.controller;
 
 import com.google.api.services.youtube.model.Video;
+import lombok.SneakyThrows;
 import me.knighthat.api.utils.Concurrency;
 import me.knighthat.api.utils.SystemInfo;
 import me.knighthat.api.v2.YoutubeAPI;
-import me.knighthat.api.v2.error.YoutubeAPIErrorTemplate;
 import me.knighthat.api.v2.instance.preview.VideoPreviewCard;
-import me.knighthat.api.v2.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.http.ResponseEntity;
@@ -48,28 +47,16 @@ public class PopularVideosController {
 
     @GetMapping( "/popular" )
     @CrossOrigin
+    @SneakyThrows( IOException.class )
     public @NotNull ResponseEntity<?> popular(
             @RequestParam( required = false, defaultValue = "50" ) int max,
             @RequestParam( required = false ) String region
     ) {
-        try {
+        List<Video> videos = this.popularVideos( max, region );
 
-            List<Video> videos = this.popularVideos( max, region );
+        Set<VideoPreviewCard> cards = new CopyOnWriteArraySet<>();
+        Concurrency.voidAsync( videos, video -> cards.add( new VideoPreviewCard( video ) ) );
 
-            Set<VideoPreviewCard> cards = new CopyOnWriteArraySet<>();
-            Concurrency.voidAsync( videos, video -> cards.add( new VideoPreviewCard( video ) ) );
-
-            return ResponseEntity.ok( cards );
-
-        } catch ( IOException e ) {
-
-            YoutubeAPIErrorTemplate errorTemplate = new YoutubeAPIErrorTemplate( e );
-
-            Logger.severe( "YouTubeAPI returns error" );
-            Logger.severe( "Reason: " + errorTemplate.getReason() );
-
-            return errorTemplate.makeResponse();
-
-        }
+        return ResponseEntity.ok( cards );
     }
 }

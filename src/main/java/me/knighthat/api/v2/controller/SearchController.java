@@ -19,15 +19,14 @@ package me.knighthat.api.v2.controller;
 import com.google.api.services.youtube.model.SearchResult;
 import com.google.api.services.youtube.model.SearchResultSnippet;
 import com.google.api.services.youtube.model.VideoSnippet;
+import lombok.SneakyThrows;
 import me.knighthat.api.utils.Concurrency;
 import me.knighthat.api.utils.SystemInfo;
 import me.knighthat.api.v2.YoutubeAPI;
 import me.knighthat.api.v2.error.BadRequestTemplate;
-import me.knighthat.api.v2.error.YoutubeAPIErrorTemplate;
 import me.knighthat.api.v2.instance.InfoContainer;
 import me.knighthat.api.v2.instance.preview.ChannelPreviewCard;
 import me.knighthat.api.v2.instance.preview.VideoPreviewCard;
-import me.knighthat.api.v2.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.http.ResponseEntity;
@@ -95,6 +94,7 @@ public class SearchController {
 
     @GetMapping( "/search" )
     @CrossOrigin
+    @SneakyThrows( IOException.class )
     public @NotNull ResponseEntity<?> search(
             @RequestParam( required = false, defaultValue = "50" ) int max,
             @RequestParam( required = false ) String region,
@@ -106,34 +106,32 @@ public class SearchController {
         if ( channelId != null && key != null )
             return BadRequestTemplate.body( "Cannot process with both \"key\" and \"channelId\" provided!" );
 
-        try {
+        Set<InfoContainer> containers = new CopyOnWriteArraySet<>();
+        Set<String> videoIds = new CopyOnWriteArraySet<>();
 
-            Set<InfoContainer> containers = new CopyOnWriteArraySet<>();
-            Set<String> videoIds = new CopyOnWriteArraySet<>();
+        List<SearchResult> results = null;
+        if ( channelId != null )
+            results = this.videosOf( max, channelId );
+        if ( key != null )
+            results = this.searchByKeyword( max, region, key );
 
-            List<SearchResult> results = null;
-            if ( channelId != null )
-                results = this.videosOf( max, channelId );
-            if ( key != null )
-                results = this.searchByKeyword( max, region, key );
+        Concurrency.voidAsync(
+                results,
+                result -> {
+                    switch (result.getId().getKind()) {
+                        case "youtube#channel" -> {
+                            SearchResultSnippet snippet = result.getSnippet();
 
-            Concurrency.voidAsync(
-                    results,
-                    result -> {
-                        switch (result.getId().getKind()) {
-                            case "youtube#channel" -> {
-                                SearchResultSnippet snippet = result.getSnippet();
-
-                                containers.add(
-                                        new ChannelPreviewCard(
-                                                result.getId().getChannelId(),
-                                                snippet.getPublishedAt(),
-                                                snippet.getTitle(),
-                                                "",
-                                                snippet.getThumbnails().getMedium().getUrl()
-                                        )
-                                );
-                            }
+                            containers.add(
+                                    new ChannelPreviewCard(
+                                            result.getId().getChannelId(),
+                                            snippet.getPublishedAt(),
+                                            snippet.getTitle(),
+                                            "",
+                                            snippet.getThumbnails().getMedium().getUrl()
+                                    )
+                            );
+                        }
 
                             /*
                             SearchResult of video doesn't have enough fields
@@ -143,45 +141,34 @@ public class SearchController {
                             call which only cost 1 quota unit for all videos
                             instead of 1 quota for each video.
                              */
-                            case "youtube#video" -> videoIds.add( result.getId().getVideoId() );
-                        }
+                        case "youtube#video" -> videoIds.add( result.getId().getVideoId() );
                     }
-            );
+                }
+        );
 
-            Concurrency.voidAsync(
-                    YoutubeAPI.videos( videoIds.size(), null, videoIds.toArray( String[]::new ) ),
-                    video -> {
-                        VideoPreviewCard card;
-                        if ( video.getStatistics().getLikeCount() == null ) {
-                            VideoSnippet snippet = video.getSnippet();
+        Concurrency.voidAsync(
+                YoutubeAPI.videos( videoIds.size(), null, videoIds.toArray( String[]::new ) ),
+                video -> {
+                    VideoPreviewCard card;
+                    if ( video.getStatistics().getLikeCount() == null ) {
+                        VideoSnippet snippet = video.getSnippet();
 
-                            card = new VideoPreviewCard(
-                                    video.getId(),
-                                    snippet.getPublishedAt(),
-                                    VideoPreviewCard.VideoDuration.fromString( video.getContentDetails().getDuration() ),
-                                    snippet.getTitle(),
-                                    BigInteger.ZERO,
-                                    video.getStatistics().getViewCount(),
-                                    snippet.getChannelId()
-                            );
-                        } else
-                            card = new VideoPreviewCard( video );
+                        card = new VideoPreviewCard(
+                                video.getId(),
+                                snippet.getPublishedAt(),
+                                VideoPreviewCard.VideoDuration.fromString( video.getContentDetails().getDuration() ),
+                                snippet.getTitle(),
+                                BigInteger.ZERO,
+                                video.getStatistics().getViewCount(),
+                                snippet.getChannelId()
+                        );
+                    } else
+                        card = new VideoPreviewCard( video );
 
-                        containers.add( card );
-                    }
-            );
+                    containers.add( card );
+                }
+        );
 
-            return ResponseEntity.ok( containers );
-
-        } catch ( IOException e ) {
-
-            YoutubeAPIErrorTemplate errorTemplate = new YoutubeAPIErrorTemplate( e );
-
-            Logger.severe( "YouTubeAPI returns error" );
-            Logger.severe( "Reason: " + errorTemplate.getReason() );
-
-            return errorTemplate.makeResponse();
-
-        }
+        return ResponseEntity.ok( containers );
     }
 }

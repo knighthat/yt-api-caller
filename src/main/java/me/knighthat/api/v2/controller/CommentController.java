@@ -17,11 +17,10 @@
 package me.knighthat.api.v2.controller;
 
 import com.google.api.services.youtube.model.CommentThread;
+import lombok.SneakyThrows;
 import me.knighthat.api.utils.Concurrency;
 import me.knighthat.api.v2.YoutubeAPI;
-import me.knighthat.api.v2.error.YoutubeAPIErrorTemplate;
 import me.knighthat.api.v2.instance.Comment;
-import me.knighthat.api.v2.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -57,32 +56,20 @@ public class CommentController {
 
     @GetMapping( "/comments" )
     @CrossOrigin
+    @SneakyThrows( IOException.class )
     public @NotNull ResponseEntity<?> comments(
             @RequestParam( required = false, defaultValue = "100" ) int max,
             @RequestParam String videoId
     ) {
-        try {
+        List<Comment> comments = new CopyOnWriteArrayList<>();
+        Concurrency.voidAsync(
+                this.fetchCommentThreads( max, videoId ),
+                thread -> comments.add( new Comment( videoId, thread ) )
+        );
 
-            List<Comment> comments = new CopyOnWriteArrayList<>();
-            Concurrency.voidAsync(
-                    this.fetchCommentThreads( max, videoId ),
-                    thread -> comments.add( new Comment( videoId, thread ) )
-            );
+        /* Sort top-level comments based on likes in descending order */
+        comments.sort( ( cmt1, cmt2 ) -> cmt2.getLikes().compareTo( cmt1.getLikes() ) );
 
-            /* Sort top-level comments based on likes in descending order */
-            comments.sort( ( cmt1, cmt2 ) -> cmt2.getLikes().compareTo( cmt1.getLikes() ) );
-
-            return ResponseEntity.ok( comments );
-
-        } catch ( IOException e ) {
-
-            YoutubeAPIErrorTemplate errorTemplate = new YoutubeAPIErrorTemplate( e );
-
-            Logger.severe( "YouTubeAPI returns error" );
-            Logger.severe( "Reason: " + errorTemplate.getReason() );
-
-            return errorTemplate.makeResponse();
-
-        }
+        return ResponseEntity.ok( comments );
     }
 }

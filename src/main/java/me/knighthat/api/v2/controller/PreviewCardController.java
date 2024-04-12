@@ -16,12 +16,11 @@
 
 package me.knighthat.api.v2.controller;
 
+import lombok.SneakyThrows;
 import me.knighthat.api.utils.Concurrency;
 import me.knighthat.api.v2.YoutubeAPI;
-import me.knighthat.api.v2.error.YoutubeAPIErrorTemplate;
 import me.knighthat.api.v2.instance.preview.ChannelPreviewCard;
 import me.knighthat.api.v2.instance.preview.VideoPreviewCard;
-import me.knighthat.api.v2.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -36,51 +35,28 @@ public class PreviewCardController {
 
     @GetMapping( "/videos" )
     @CrossOrigin
+    @SneakyThrows( IOException.class )
     public @NotNull ResponseEntity<?> videoCards( @RequestParam String... id ) {
-        try {
+        Set<VideoPreviewCard> cards = new CopyOnWriteArraySet<>();
+        Concurrency.voidAsync(
+                YoutubeAPI.videos( id.length, null, id ),
+                video -> cards.add( new VideoPreviewCard( video ) )
+        );
 
-            Set<VideoPreviewCard> cards = new CopyOnWriteArraySet<>();
-            Concurrency.voidAsync(
-                    YoutubeAPI.videos( id.length, null, id ),
-                    video -> cards.add( new VideoPreviewCard( video ) )
-            );
-
-            return ResponseEntity.ok( cards );
-
-        } catch ( IOException e ) {
-
-            YoutubeAPIErrorTemplate errorTemplate = new YoutubeAPIErrorTemplate( e );
-
-            Logger.severe( "YouTubeAPI returns error" );
-            Logger.severe( "Reason: " + errorTemplate.getReason() );
-
-            return errorTemplate.makeResponse();
-
-        }
+        return ResponseEntity.ok( cards );
     }
 
     @GetMapping( "/channels" )
     @CrossOrigin
+    @SneakyThrows( IOException.class )
     public @NotNull ResponseEntity<?> channelCards( @RequestParam String... id ) {
-        try {
 
-            Set<ChannelPreviewCard> cards = new CopyOnWriteArraySet<>();
-            Concurrency.voidAsync(
-                    YoutubeAPI.channels( id.length, id ),
-                    channel -> cards.add( new ChannelPreviewCard( channel.getId(), channel.getSnippet() ) )
-            );
+        Set<ChannelPreviewCard> cards = new CopyOnWriteArraySet<>();
+        Concurrency.voidAsync(
+                YoutubeAPI.channels( id.length, id ),
+                channel -> cards.add( new ChannelPreviewCard( channel.getId(), channel.getSnippet() ) )
+        );
 
-            return ResponseEntity.ok( cards );
-
-        } catch ( IOException e ) {
-
-            YoutubeAPIErrorTemplate errorTemplate = new YoutubeAPIErrorTemplate( e );
-
-            Logger.severe( "YouTubeAPI returns error" );
-            Logger.severe( "Reason: " + errorTemplate.getReason() );
-
-            return errorTemplate.makeResponse();
-
-        }
+        return ResponseEntity.ok( cards );
     }
 }

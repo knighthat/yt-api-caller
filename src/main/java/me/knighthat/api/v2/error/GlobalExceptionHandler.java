@@ -1,5 +1,7 @@
 package me.knighthat.api.v2.error;
 
+import com.google.api.client.googleapis.json.GoogleJsonResponseException;
+import me.knighthat.api.v2.logging.Logger;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -26,5 +28,15 @@ public class GlobalExceptionHandler {
     @ExceptionHandler( IllegalStateException.class )
     public ResponseEntity<ServerErrorTemplate> handleIllegalStateException( IllegalStateException e ) {
         return new ServerErrorTemplate( e ).makeResponse();
+    }
+
+    @ExceptionHandler( GoogleJsonResponseException.class )
+    public ResponseEntity<YoutubeAPIErrorTemplate> handleUndeclaredThrowableException( GoogleJsonResponseException e ) {
+        YoutubeAPIErrorTemplate template = new YoutubeAPIErrorTemplate( e );
+
+        Logger.severe( "YouTubeAPI returns error" );
+        Logger.severe( "Reason: " + template.getReason() );
+
+        return template.makeResponse();
     }
 }

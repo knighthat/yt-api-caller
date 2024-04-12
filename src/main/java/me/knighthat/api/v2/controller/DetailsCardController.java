@@ -18,11 +18,10 @@ package me.knighthat.api.v2.controller;
 
 import com.google.api.services.youtube.model.Channel;
 import com.google.api.services.youtube.model.Video;
+import lombok.SneakyThrows;
 import me.knighthat.api.v2.YoutubeAPI;
-import me.knighthat.api.v2.error.YoutubeAPIErrorTemplate;
 import me.knighthat.api.v2.instance.detail.ChannelDetails;
 import me.knighthat.api.v2.instance.detail.VideoDetails;
-import me.knighthat.api.v2.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -35,41 +34,17 @@ public class DetailsCardController {
 
     @GetMapping( "/video" )
     @CrossOrigin
+    @SneakyThrows( IOException.class )
     public @NotNull ResponseEntity<?> videoDetails( @RequestParam String id ) {
-        try {
-
-            Video video = YoutubeAPI.videos( 1, null, id ).get( 0 );
-            return ResponseEntity.ok( new VideoDetails( video ) );
-
-        } catch ( IOException e ) {
-
-            YoutubeAPIErrorTemplate errorTemplate = new YoutubeAPIErrorTemplate( e );
-
-            Logger.severe( "YouTubeAPI returns error" );
-            Logger.severe( "Reason: " + errorTemplate.getReason() );
-
-            return errorTemplate.makeResponse();
-
-        }
+        Video video = YoutubeAPI.videos( 1, null, id ).get( 0 );
+        return ResponseEntity.ok( new VideoDetails( video ) );
     }
 
     @GetMapping( "/channel" )
     @CrossOrigin
+    @SneakyThrows( IOException.class )
     public @NotNull ResponseEntity<?> channelDetails( @RequestParam String id ) {
-        try {
-
-            Channel channel = YoutubeAPI.channels( 1, id ).get( 0 );
-            return ResponseEntity.ok( new ChannelDetails( channel ) );
-
-        } catch ( IOException e ) {
-
-            YoutubeAPIErrorTemplate errorTemplate = new YoutubeAPIErrorTemplate( e );
-
-            Logger.severe( "YouTubeAPI returns error" );
-            Logger.severe( "Reason: " + errorTemplate.getReason() );
-
-            return errorTemplate.makeResponse();
-
-        }
+        Channel channel = YoutubeAPI.channels( 1, id ).get( 0 );
+        return ResponseEntity.ok( new ChannelDetails( channel ) );
     }
 }
