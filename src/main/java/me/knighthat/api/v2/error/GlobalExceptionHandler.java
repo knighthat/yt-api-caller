@@ -1,8 +1,11 @@
 package me.knighthat.api.v2.error;
 
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
+import me.knighthat.api.v2.exception.ConflictRequestParamException;
+import me.knighthat.api.v2.exception.MissingRequestParamException;
 import me.knighthat.api.v2.logging.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -49,5 +52,15 @@ public class GlobalExceptionHandler {
         Logger.warning( "NoResourceFoundException: " + e.getMessage() );
 
         return ResponseEntity.status( 404 ).body( Map.of( "reason", e.getMessage() ) );
+    }
+
+    @ExceptionHandler( MissingRequestParamException.class )
+    public ResponseEntity<RawErrorTemplate> handleMissingRequestParamException( @NotNull MissingRequestParamException e ) {
+        return RawErrorTemplate.body( HttpStatus.NOT_FOUND, e.getMessage() );
+    }
+
+    @ExceptionHandler( ConflictRequestParamException.class )
+    public ResponseEntity<RawErrorTemplate> handleConflictRequestParamException( @NotNull ConflictRequestParamException e ) {
+        return RawErrorTemplate.body( HttpStatus.CONFLICT, e.getMessage() );
     }
 }
