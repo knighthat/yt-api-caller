@@ -4,20 +4,14 @@ package me.knighthat.api.v2;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.youtube.YouTube;
-import com.google.api.services.youtube.model.Channel;
-import com.google.api.services.youtube.model.Video;
 import com.google.common.base.Preconditions;
-import me.knighthat.api.utils.ArrayUtils;
-import me.knighthat.api.utils.SystemInfo;
 import me.knighthat.api.v2.logging.Logger;
+import me.knighthat.api.youtube.Part;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.util.Collections;
-import java.util.List;
 
 @Component
 public class YoutubeAPI {
@@ -56,110 +50,54 @@ public class YoutubeAPI {
         return service;
     }
 
-    /**
-     * This method will send HTTP request to YouTubeAPI
-     * to get information about video(s) based on provided id(s).
-     *
-     * @param max    number of maximum results YouTubeAPI will return
-     * @param region country code, will be replaced by system's country code if value is null
-     * @param id     set of ids to query info, at least 1 id must be provided
-     *
-     * @return list of Videos can be found by YouTubeAPI
-     *
-     * @throws IOException              when there's something wrong with the API
-     * @throws IllegalArgumentException if no id were provided or region had abnormal length
-     */
-    public static @NotNull List<Video> videos( long max, @Nullable String region, @NotNull String... id ) throws IOException, IllegalArgumentException {
-        if ( id.length < 1 )
-            throw new IllegalArgumentException( "No channel id were provided!" );
-
-        if ( max < 0 )
-            /*
-            Set number of results return by YouTubeAPI to 'ids' size
-            if provided value is a sub-zero number.
-            */
-            max = id.length;
-        if ( max == 0 )
-            /* No need to waste quota on 0 result query */
-            return Collections.emptyList();
-
-        if ( region == null )
-            region = SystemInfo.countryCode();
-        /* Invalid country code */
-        if ( region.length() != 2 )
-            throw new IllegalArgumentException( "\"region\" can only be a 2 characters string!" );
-
-        return getService().videos()
-                           .list( "contentDetails,id,snippet,statistics,status,topicDetails" )
-                           .setKey( API_KEY )
-                           .setId( ArrayUtils.toString( id, "," ) )
-                           .setMaxResults( max )
-                           .setRegionCode( region )
-                           .execute()
-                           .getItems();
-    }
-
-    /**
-     * Retrieve information about a channel by its channel's id.
-     *
-     * @param max number of maximum results YouTubeAPI will return
-     * @param id  set of ids to query info, at least 1 id must be provided
-     *
-     * @return list of Channels can be found by YouTubeAPI
-     *
-     * @throws IOException              when there's something wrong with the API
-     * @throws IllegalArgumentException if no id were provided or region had abnormal length
-     */
-    public static @NotNull List<Channel> channels( long max, @NotNull String... id ) throws IOException, IllegalArgumentException {
-        if ( id.length < 1 )
-            throw new IllegalArgumentException( "No channel id were provided!" );
-
-        if ( max < 0 )
-            /*
-            Set number of results return by YouTubeAPI to 'ids' size
-            if provided value is a sub-zero number.
-            */
-            max = id.length;
-        else if ( max == 0 )
-            /* No need to waste quota on 0 result query */
-            return Collections.emptyList();
-
-        return getService().channels()
-                           .list( "brandingSettings,contentDetails,snippet,statistics,status,topicDetails" )
-                           .setKey( API_KEY )
-                           .setId( ArrayUtils.toString( id, "," ) )
-                           .setMaxResults( max )
-                           .execute()
-                           .getItems();
-    }
-
     public @NotNull YouTube.Videos.List videos() throws IOException {
+        Part.Builder part = Part.builder()
+                                .content()
+                                .id()
+                                .snippet()
+                                .statistics()
+                                .status()
+                                .topic();
+
         return getService().videos()
-                           .list( "contentDetails,id,snippet,statistics,status,topicDetails" )
+                           .list( part.build() )
                            .setKey( API_KEY );
     }
 
     public @NotNull YouTube.Channels.List channels() throws IOException {
+        Part.Builder part = Part.builder()
+                                .branding()
+                                .content()
+                                .snippet()
+                                .statistics()
+                                .status()
+                                .topic();
+
         return getService().channels()
-                           .list( "brandingSettings,contentDetails,snippet,statistics,status,topicDetails" )
+                           .list( part.build() )
                            .setKey( API_KEY );
     }
 
     public @NotNull YouTube.Search.List search() throws IOException {
         return getService().search()
-                           .list( "snippet" )
+                           .list( Part.builder().snippet().build() )
                            .setKey( API_KEY );
     }
 
     public @NotNull YouTube.CommentThreads.List comments() throws IOException {
+        Part.Builder part = Part.builder()
+                                .id()
+                                .snippet()
+                                .replies();
+
         return getService().commentThreads()
-                           .list( "id,snippet,replies" )
+                           .list( part.build() )
                            .setKey( API_KEY );
     }
 
     public @NotNull YouTube.Comments.List replies() throws IOException {
         return getService().comments()
-                           .list( "id, snippet" )
+                           .list( Part.builder().id().snippet().build() )
                            .setKey( API_KEY );
     }
 }
