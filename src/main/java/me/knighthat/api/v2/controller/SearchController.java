@@ -35,6 +35,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -114,7 +115,7 @@ public class SearchController {
         );
 
         Concurrency.voidAsync(
-                YoutubeAPI.videos( videoIds.size(), null, videoIds.toArray( String[]::new ) ),
+                service.videos().setId( new ArrayList<>( videoIds ) ).execute().getItems(),
                 video -> {
                     VideoPreviewCard card;
                     if ( video.getStatistics().getLikeCount() == null ) {
