@@ -57,7 +57,8 @@ public class CommentController {
         Concurrency.voidAsync(
                 service.comments()
                        .setVideoId( videoId )
-                       .setModerationStatus( "relevance" )
+                       .setModerationStatus( "published" )
+                       .setOrder( "relevance" )
                        .setMaxResults( (long) max )
                        .execute()
                        .getItems(),
