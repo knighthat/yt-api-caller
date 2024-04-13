@@ -17,6 +17,7 @@
 package me.knighthat.api.v2.instance.detail;
 
 import com.google.api.services.youtube.model.Channel;
+import com.google.api.services.youtube.model.ImageSettings;
 import lombok.Getter;
 import me.knighthat.api.v2.instance.preview.ChannelPreviewCard;
 import org.jetbrains.annotations.NotNull;
@@ -38,8 +39,13 @@ public class ChannelDetails extends ChannelPreviewCard {
     public ChannelDetails( @NotNull Channel channel ) {
         super( channel );
         this.subscribers = channel.getStatistics().getSubscriberCount();
-        this.banner = channel.getBrandingSettings().getImage().getBannerExternalUrl();
         this.views = channel.getStatistics().getViewCount();
         this.description = channel.getSnippet().getDescription();
+
+        ImageSettings image = channel.getBrandingSettings().getImage();
+        if ( image != null && image.getBannerExternalUrl() != null )
+            this.banner = image.getBannerExternalUrl();
+        else
+            this.banner = "";
     }
 }
