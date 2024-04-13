@@ -16,9 +16,11 @@
 
 package me.knighthat.api.v2.controller;
 
+import com.google.api.services.youtube.YouTube;
 import com.google.api.services.youtube.model.Channel;
 import com.google.api.services.youtube.model.Video;
 import lombok.SneakyThrows;
+import me.knighthat.api.utils.Sanitizer;
 import me.knighthat.api.v2.YoutubeAPI;
 import me.knighthat.api.v2.instance.detail.ChannelDetails;
 import me.knighthat.api.v2.instance.detail.VideoDetails;
@@ -62,12 +64,21 @@ public class DetailsCardController {
     @GetMapping( "/channel" )
     @CrossOrigin
     @SneakyThrows( IOException.class )
-    public @NotNull ResponseEntity<?> channelDetails( @RequestParam List<String> id ) {
-        List<Channel> channels = service.channels()
-                                        .setId( id )
-                                        .setMaxResults( 1L )
-                                        .execute()
-                                        .getItems();
+    public @NotNull ResponseEntity<?> channelDetails(
+            @RequestParam( required = false ) List<String> id,
+            @RequestParam( required = false ) String handle
+    ) {
+        Sanitizer.atLeastOneNotNull( id, handle, "id", "handle" );
+
+        YouTube.Channels.List channelList = service.channels().setMaxResults( 1L );
+
+        if ( id != null )
+            channelList = channelList.setId( id );
+        if ( handle != null )
+            channelList = channelList.setForHandle( handle );
+
+        List<Channel> channels = channelList.execute().getItems();
+
         if ( channels.isEmpty() )
             return ResponseEntity.ok( Collections.emptyList() );
 
