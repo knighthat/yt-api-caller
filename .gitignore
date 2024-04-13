@@ -34,7 +34,4 @@ build/
 
 
 ### Spring Boot ###
-mvnw
-mvnw.cmd
-.mvn/
 requests/*
