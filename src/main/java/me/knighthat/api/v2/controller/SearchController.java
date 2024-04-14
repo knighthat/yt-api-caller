@@ -22,6 +22,7 @@ import com.google.api.services.youtube.model.VideoSnippet;
 import lombok.SneakyThrows;
 import me.knighthat.api.utils.Concurrency;
 import me.knighthat.api.utils.Sanitizer;
+import me.knighthat.api.utils.UrlParser;
 import me.knighthat.api.v2.YoutubeAPI;
 import me.knighthat.api.v2.instance.InfoContainer;
 import me.knighthat.api.v2.instance.preview.ChannelPreviewCard;
@@ -72,7 +73,12 @@ public class SearchController {
             results = service.search().setChannelId( channelId ).setMaxResults( max ).execute().getItems();
         if ( key != null ) {
             region = Sanitizer.countryCode( region );
-            results = service.search().setQ( key ).setRegionCode( region ).setMaxResults( max ).execute().getItems();
+            results = service.search()
+                             .setQ( UrlParser.specialCharacters( key ) )
+                             .setRegionCode( region )
+                             .setMaxResults( max )
+                             .execute()
+                             .getItems();
         }
 
         Concurrency.voidAsync(
