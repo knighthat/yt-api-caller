@@ -48,16 +48,25 @@ public class Env {
      * should have 'def' set to value other than null
      * as the fallback value.
      */
-    enum VariableNames {
+    public enum VariableNames {
         API_KEY( true, null ),
         APP_NAME( false, "YTF" );
 
         final boolean required;
-        final Object  def;
+        @Nullable
+        final String  def;
 
-        VariableNames( boolean required, @Nullable Object def ) {
+        VariableNames( boolean required, @Nullable String def ) {
             this.required = required;
             this.def = def;
+        }
+
+        public @Nullable String get() {
+            String value = System.getenv( this.name() );
+            if ( value == null || value.isBlank() )
+                value = this.def;
+
+            return value;
         }
     }
 }

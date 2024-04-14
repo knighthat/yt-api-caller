@@ -16,16 +16,12 @@ import java.security.GeneralSecurityException;
 @Component
 public class YoutubeAPI {
 
-    public static final String  API_KEY = System.getenv( "API_KEY" );
-    public static final String  APP_NAME;
-    private static      YouTube service;
+    private static YouTube service;
 
-    static {
-        String appName = System.getenv( "APP_NAME" );
-        if ( appName == null || appName.isBlank() )
-            APP_NAME = Env.VariableNames.APP_NAME.def.toString();
-        else
-            APP_NAME = appName;
+    private static @NotNull String apiKey() {
+        String key = Env.VariableNames.API_KEY.get();
+        Preconditions.checkNotNull( key );
+        return key;
     }
 
     public static void init() throws GeneralSecurityException, IOException {
@@ -35,7 +31,8 @@ public class YoutubeAPI {
                 GoogleNetHttpTransport.newTrustedTransport(),
                 GsonFactory.getDefaultInstance(),
                 null
-        ).setApplicationName( APP_NAME ).build();
+        ).setApplicationName( Env.VariableNames.APP_NAME.get() )
+         .build();
 
         Logger.info( "YouTube Service is up and running!" );
     }
@@ -61,7 +58,7 @@ public class YoutubeAPI {
 
         return getService().videos()
                            .list( part.build() )
-                           .setKey( API_KEY );
+                           .setKey( apiKey() );
     }
 
     public @NotNull YouTube.Channels.List channels() throws IOException {
@@ -75,13 +72,13 @@ public class YoutubeAPI {
 
         return getService().channels()
                            .list( part.build() )
-                           .setKey( API_KEY );
+                           .setKey( apiKey() );
     }
 
     public @NotNull YouTube.Search.List search() throws IOException {
         return getService().search()
                            .list( Part.builder().snippet().build() )
-                           .setKey( API_KEY );
+                           .setKey( apiKey() );
     }
 
     public @NotNull YouTube.CommentThreads.List comments() throws IOException {
@@ -92,12 +89,12 @@ public class YoutubeAPI {
 
         return getService().commentThreads()
                            .list( part.build() )
-                           .setKey( API_KEY );
+                           .setKey( apiKey() );
     }
 
     public @NotNull YouTube.Comments.List replies() throws IOException {
         return getService().comments()
                            .list( Part.builder().id().snippet().build() )
-                           .setKey( API_KEY );
+                           .setKey( apiKey() );
     }
 }
