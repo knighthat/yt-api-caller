@@ -50,7 +50,8 @@ public class Env {
      */
     public enum VariableNames {
         API_KEY( true, null ),
-        APP_NAME( false, "YTF" );
+        APP_NAME( false, "YTF" ),
+        DEFAULT_COUNTRY( false, "" );
 
         final boolean required;
         @Nullable
