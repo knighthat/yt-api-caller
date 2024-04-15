@@ -40,6 +40,6 @@ public class MissingRequestParamException extends RuntimeException {
         for (String p : params)
             builder.add( p );
 
-        return "Please provide at least 1 argument of %s".formatted( builder.toString() );
+        return "Please provide one of these queries %s".formatted( builder.toString() );
     }
 }

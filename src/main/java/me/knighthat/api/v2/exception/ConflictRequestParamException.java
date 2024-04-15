@@ -40,6 +40,6 @@ public class ConflictRequestParamException extends RuntimeException {
         for (String p : params)
             builder.add( p );
 
-        return "Cannot process with %s provided!".formatted( builder.toString() );
+        return "Only one of these query are accepted %s".formatted( builder.toString() );
     }
 }
