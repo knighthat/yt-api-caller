@@ -68,7 +68,10 @@ public class DetailsCardController {
             @RequestParam( required = false ) List<String> id,
             @RequestParam( required = false ) String handle
     ) {
-        Sanitizer.atLeastOneNotNull( id, handle, "id", "handle" );
+        Sanitizer.atLeastOneNotNull(
+            new Object[] {id, handle},
+            new String[] {"id", "handle"}
+        );
 
         YouTube.Channels.List channelList = service.channels().setMaxResults( 1L );
 

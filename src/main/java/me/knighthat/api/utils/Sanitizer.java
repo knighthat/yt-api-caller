@@ -18,6 +18,8 @@ package me.knighthat.api.utils;
 
 import me.knighthat.api.v2.exception.ConflictRequestParamException;
 import me.knighthat.api.v2.exception.MissingRequestParamException;
+
+import org.checkerframework.checker.units.qual.t;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,15 +36,25 @@ public class Sanitizer {
     }
 
     public static void atLeastOneNotNull(
-            @Nullable Object obj1,
-            @Nullable Object obj2,
-            @NotNull String obj1Name,
-            @NotNull String obj2Name
+        Object @Nullable [] objects,
+        String @NotNull [] objNames
     ) {
-        if ( obj1 == null && obj2 == null )
-            throw new MissingRequestParamException( obj1Name, obj2Name );
-        if ( obj1 != null && obj2 != null )
-            throw new ConflictRequestParamException( obj1Name, obj2Name );
+        if (objects.length != objNames.length)
+            throw new IllegalArgumentException("Mismatch number of objects and their names!");
+
+        boolean hashNonNull = false;
+        for (Object obj : objects) {
+            if (obj == null)
+                continue;
+
+            if (hashNonNull)
+                throw new ConflictRequestParamException( objNames );
+            else
+                hashNonNull = true;
+        }
+
+        if (!hashNonNull)
+            throw new MissingRequestParamException( objNames );
     }
 
     public static boolean noReturnExpected( long max ) {
