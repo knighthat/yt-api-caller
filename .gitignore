@@ -35,3 +35,4 @@ build/
 
 ### Spring Boot ###
 requests/*
+/youtube_dl/
