@@ -1,6 +1,7 @@
 package me.knighthat.api;
 
 import me.knighthat.api.v2.logging.Logger;
+import me.knighthat.api.youtubedl.YoutubeDL;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -22,6 +23,22 @@ public class KnighthatMeApplication {
 
             System.exit( 1 );
         }
+
+        /*
+            Load dependencies
+        */
+        try {
+            YoutubeDL.init();
+        } catch ( IOException e ) {
+            Logger.severe( "Error occurs while verifying youtube-dl version!" );
+            Logger.severe( "Reason: " + e.getMessage() );
+            System.exit( 1 );
+        } catch ( InterruptedException e ) {
+            Logger.severe( "Thread interrupted during youtube-dl verification process" );
+            Logger.severe( "Reason: " + e.getMessage() );
+            System.exit( 1 );
+        }
+
 
         /* Running stage - initialize YouTube Service */
         try {
