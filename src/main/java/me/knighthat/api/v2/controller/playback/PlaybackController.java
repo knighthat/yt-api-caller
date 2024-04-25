@@ -18,11 +18,14 @@ package me.knighthat.api.v2.controller.playback;
 
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.SneakyThrows;
+import me.knighthat.api.v2.logging.Logger;
+import me.knighthat.youtubedl.YoutubeDL;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Map;
+import java.util.function.BiConsumer;
 
 @RestController
 @RequestMapping( "/v2/playback" )
@@ -36,26 +39,27 @@ public class PlaybackController {
         response.setContentType( "video/mp4" );
         response.setHeader( "Content-Disposition", "inline; filename=\"video.mp4\"" );
 
-        String[] command = {
-                "python",
-                "youtube_dl/__main__.py",
-                "--limit-rate",
-                "130K",     // Suitable for 360p stream
-                "-o",
-                "-",
-                "https://www.youtube.com/watch?v=" + videoId
-        };
-        Process process = new ProcessBuilder( command ).start();
-        InputStream inStream = process.getInputStream();
-        OutputStream outStream = response.getOutputStream();
+        String videoUrl = "https://www.youtube.com/watch?v=" + videoId;
 
-        byte[] buffer = new byte[1024];
-        int bytesRead;
-        while ((bytesRead = inStream.read( buffer )) != -1) {
-            outStream.write( buffer, 0, bytesRead );
+        OutputStream outStream = response.getOutputStream();
+        BiConsumer<byte[], Integer> stream = ( buffer, length ) -> {
+            try {
+                outStream.write( buffer, 0, length );
+            } catch ( IOException e ) {
+                Logger.severe( "Error occurs while streaming " + videoUrl );
+                Logger.severe( "Reason: " + e.getMessage() );
+            }
+        };
+
+        try {
+            YoutubeDL.stream( videoUrl )
+                     .flags( () -> Map.of( "--limit-rate", "130K" ) )
+                     .stream( 1024, stream );
+        } catch ( InterruptedException e ) {
+            Logger.severe( "Thread interrupted during stream (" + videoUrl + ")" );
+            Logger.severe( "Reason: " + e.getMessage() );
         }
 
-        inStream.close();
         outStream.close();
     }
 }

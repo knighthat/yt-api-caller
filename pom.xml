@@ -53,6 +53,13 @@
         </plugins>
     </build>
 
+    <repositories>
+        <repository>
+            <id>youtube-dl</id>
+            <url>https://repo.knighthat.me/repository/maven-public/</url>
+        </repository>
+    </repositories>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -106,6 +113,14 @@
             <artifactId>annotations</artifactId>
             <version>24.0.1</version>
             <scope>provided</scope>
+        </dependency>
+
+        <!-- YoutubeDL Wrapper -->
+        <dependency>
+            <groupId>me.knighthat.youtube-dl</groupId>
+            <artifactId>youtube-dl</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 
